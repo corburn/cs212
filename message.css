@@ -1,0 +1,117 @@
+/* http://www.sitepoint.com/css3-vertical-accordion-using-target-selector/ */
+body
+{
+    font-family: "Segoe UI", arial, helvetica, freesans, sans-serif;
+    font-size: 90%;
+    color: #333;
+    background-color: #e5eaff;
+    margin: 10px;
+    z-index: 0;
+}
+
+h1
+{
+    font-size: 1.5em;
+    font-weight: normal;
+    margin: 0;
+}
+
+h2
+{
+    font-size: 1.3em;
+    font-weight: normal;
+    margin: 2em 0 0 0;
+}
+
+p
+{
+    margin: 0.6em 0;
+}
+
+p.accnav
+{
+    font-size: 1.1em;
+    text-transform: uppercase;
+    text-align: right;
+}
+
+p.accnav a
+{
+    text-decoration: none;
+    color: #999;
+}
+
+section.accordion
+{
+    display: block;
+    //width: 30em;
+    padding: 0.5em 0.5em 1px 0.5em;
+    margin: 0 auto;
+    background-color: #666;
+    border-radius: 5px;
+    box-shadow: 0 3px 3px rgba(0,0,0,0.3);
+}
+
+section.accordion article
+{
+    display: block;
+    //width: 28em;
+    height: 2em;
+    padding: 0 1em;
+    margin: 0 0 0.5em 0;
+    color: #333;
+    background-color: #333;
+    overflow: hidden;
+    border-radius: 3px;
+}
+
+section.accordion article h2
+{
+    font-size: 1em;
+    font-weight: bold;
+    width: 100%;
+    line-height: 2em;
+    padding: 0;
+    margin: 0;
+    color: #ddd;
+}
+
+section.accordion article h2 a
+{
+    display: block;
+    width: 100%;
+    line-height: 2em;
+    text-decoration: none;
+    color: inherit;
+    outline: 0 none;
+}
+
+section.accordion article,
+section.accordion article h2
+{
+    -webkit-transition: all 1s ease;
+    -moz-transition: all 1s ease;
+    -ms-transition: all 1s ease;
+    -o-transition: all 1s ease;
+    transition: all 1s ease;
+}
+
+section.accordion article:target
+{
+    height: 15em;
+    background-color: #fff;
+}
+
+section.accordion article:target h2
+{
+    font-size: 1.6em;
+    color: #333;
+}
+
+.read {
+    background-color: #777!important;
+}
+
+button {
+    padding: .5em 1em;
+}
