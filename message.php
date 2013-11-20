@@ -27,7 +27,7 @@ if (isset($_POST['read'])) {
 // A message was sent
 if (isset($_POST['send'], $_POST['to'], $_POST['subject'], $_POST['message'])) {
     try {
-        $sql = "INSERT INTO `messages`(`to`, `from`, `subject`, `message`) VALUES (:to,'".$_SESSION['uname']."',:subject,:message)";
+        $sql = "INSERT INTO `messages`(`to`, `from`, `subject`, `message`) VALUES (:to,'" . $_SESSION['uname'] . "',:subject,:message)";
         $sth = $dbh->prepare($sql);
         $sth->bindParam(':to', $_POST['to']);
         $sth->bindParam(':subject', $_POST['subject']);
@@ -131,16 +131,16 @@ function fetchMessages($dbh) {
                     $prevMessage = $(this);
                     $(this).addClass('read');
                     // Set the message to read and update the database
-                    /*$.post(window.location.pathname, {
-                     'read': $(this).attr('id')
-                     })
-                     .fail(function(jqXHR, textStatus, errorThrown) {
-                     $(this).removeClass('read');
-                     $(this).show();
-                     console.log(textStatus);
-                     console.log(errorThrown);
-                     console.log(jqXHR.responseText);
-                     });*/
+                    $.post(window.location.pathname, {
+                        'read': $(this).attr('id')
+                    })
+                            .fail(function(jqXHR, textStatus, errorThrown) {
+                                $(this).removeClass('read');
+                                $prevMessage = null;
+                                console.log(textStatus);
+                                console.log(errorThrown);
+                                console.log(jqXHR.responseText);
+                            });
                 });
                 $('button').click(function() {
                     switch ($(this).attr('id')) {
