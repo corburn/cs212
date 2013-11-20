@@ -14,7 +14,7 @@ include 'dbh.php';
 // Set the message to read ensuring it belongs to them
 if (isset($_POST['read'])) {
     try {
-        $sql = "UPDATE messages SET read=True WHERE id = ? AND 'to' = ?";
+        $sql = "UPDATE messages SET read=True WHERE 'id' = ? AND 'to' = ?";
         $sth = $dbh->prepare($sql);
         $sth->execute(array($_POST['read'], $_SESSION['uname']));
     } catch (Exception $e) {
@@ -24,12 +24,22 @@ if (isset($_POST['read'])) {
     exit();
 }
 
+// A message was sent
+if (isset($_POST['send'], $_POST['to'], $_POST['subject'], $_POST['message'])) {
+    
+}
+
+/**
+ * fetchMessages returns an array of the users messages
+ * @param type $dbh database handle
+ * @return array user's messages
+ */
 function fetchMessages($dbh) {
     try {
         $sql = "SELECT * FROM messages WHERE 'to'=?";
         $sth = $dbh->prepare($sql);
         $sth->execute(array($_SESSION['uname']));
-        return $sth->fetch(PDO::FETCH_ASSOC);
+        return $sth->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         echo $e->getMessage();
     }
@@ -43,13 +53,16 @@ function fetchMessages($dbh) {
         <link rel="stylesheet" type="text/css" href="message.css">
     </head>
     <body>
-        <button id="compose" type="button">Compose</button><button id="displayRead" type="button">Hide Read</button>
+        <button id="compose" type="button">Compose</button>
+        <button id="hideRead" type="button"><?php echo (isset($_POST['hideRead']) and $_POST['hideRead'] === 'true') ? 'Display Read' : 'Hide Read'; ?></button>
         <form method="POST">
             <fieldset>
                 <legend>Compose</legend>
-                <label for="to">To<input id="name" type="text" name="to" value="" placeholder=""></label>
-                <label for="subject">Subject<input id="subject" type="text" name="subject" value="" placeholder=""></label>
-                <label for="message">Message<textarea id="message" name="message" placeholder=""></textarea></label>
+                <label for="to">To<input name="to" type="text" required></label>
+                <label for="subject">Subject<input name="subject" type="text" required></label>
+                <label for="message">Message<textarea name="message" required></textarea></label>
+                <input type="hidden" name="hideRead" value="<?php echo isset($_POST['hideRead']) ? $_POST['hideRead'] : 'false'; ?>">
+                <button type="submit" name="send">Send</button>
             </fieldset>
         </form>
         <section class="accordion">
@@ -91,11 +104,14 @@ function fetchMessages($dbh) {
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script>
             $(document).ready(function() {
+                var $prevMessage;
+                var hideRead = <?php echo isset($_POST['hideRead']) ? $_POST['hideRead'] : 'false'; ?>;
+                if(hideRead) $('.read').hide();
+                
                 // Hide the form with javascript so the page will still work if
                 // javascript is disabled
                 $('form').hide();
-                var $prevMessage;
-                var hideRead = false;
+
                 $('article').click(function() {
                     // If read messages are hidden, wait to hide this one until
                     // the next message is selected
@@ -120,10 +136,11 @@ function fetchMessages($dbh) {
                         case 'compose':
                             $('form').toggle('slow');
                             break;
-                        case 'displayRead':
+                        case 'hideRead':
                             hideRead = !hideRead;
                             $(this).text(hideRead ? 'Display Read' : 'Hide Read');
                             hideRead ? $('.read').hide() : $('.read').show();
+                            $('input[name=hideRead]').val(hideRead);
                             break;
                     }
                 });
