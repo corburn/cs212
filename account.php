@@ -38,8 +38,10 @@ if (isset($_POST['action'], $_POST['uname'], $_POST['password'])) {
             break;
     }
     // Return from whence you came
-    if (empty($error))
+    if (empty($error)) {
         header('Location: ' . $_SERVER['PHP_SELF']);
+        exit();
+    }
 }
 
 /**

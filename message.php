@@ -120,10 +120,6 @@ function fetchMessages($dbh) {
                 if (hideRead)
                     $('.read').hide();
 
-                // Hide the form with javascript so the page will still work if
-                // javascript is disabled
-                $('form').hide();
-
                 $('article').click(function() {
                     // If read messages are hidden, wait to hide this one until
                     // the next message is selected
@@ -137,6 +133,7 @@ function fetchMessages($dbh) {
                         'action': 'read'
                     })
                             .fail(function(jqXHR, textStatus, errorThrown) {
+                                // Undo changes
                                 $(this).removeClass('read');
                                 $prevMessage = null;
                                 console.log(textStatus);
@@ -152,14 +149,19 @@ function fetchMessages($dbh) {
                             break;
                         case 'hideRead':
                             hideRead = !hideRead;
+                            // Toggle button text
                             $(this).text(hideRead ? 'Display Read' : 'Hide Read');
+                            // Toggle read message visibility
                             hideRead ? $('.read').hide() : $('.read').show();
+                            // Preserve state after form submit by including hideState
+                            // in a hidden form input
                             $('input[name=hideRead]').val(hideRead);
                             break;
-                            ject
                     }
                     switch ($(this).attr('class')) {
                         case 'reply':
+                            // Display the compose form with To and Subject autofilled
+                            // and message field focused
                             var title = $(this).siblings('h2').text();
                             var from = title.substring('From '.length, title.indexOf(':'));
                             var subject = title.substring(title.indexOf(':') + 1, title.length);
@@ -169,17 +171,22 @@ function fetchMessages($dbh) {
                             $('textarea').focus();
                             break;
                         case 'delete':
+                            // Delete the message from the database
                             $.post(window.location.pathname, {
                                 'id': $(this).parent().attr('id'),
                                 'action': 'delete'
                             })
                                     .done(function(data) {
+                                        // On success remove the message from the page
                                         $('#' + data['id']).remove();
                                         // Display no more messages
                                         if ($('section.accordion').children().length < 1)
                                             $('section.accordion').html('<span style="color:white">You have no messages</span>');
                                     })
                                     .fail(function(jqXHR, textStatus, errorThrown) {
+                                        // TODO user feedback on failure.
+                                        // Get id from jqXHR response text and
+                                        // use jquery to flash the message
                                         console.log(textStatus);
                                         console.log(errorThrown);
                                         console.log(jqXHR.responseText);

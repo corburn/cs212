@@ -141,3 +141,7 @@ section.accordion article:target button {
     bottom: 0;
     right: 1em;
 }
+
+form {
+    display: none;
+}
