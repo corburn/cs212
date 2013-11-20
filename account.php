@@ -115,7 +115,7 @@ function register($dbh, array $user) {
         $sth->bindValue(':uname', $user['uname']);
         $sth->bindValue(':phash', hashPassword($user['password']));
         $sth->execute();
-        $dbh->commit();
+        $_SESSION['uname'] = $user['uname'];
     } catch (PDOException $e) {
         header('HTTP/1.1 500 Internal Server Error', true, 500);
         return 'ERROR: ' . $e->getMessage();
