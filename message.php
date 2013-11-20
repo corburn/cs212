@@ -19,7 +19,7 @@ if (isset($_POST['read'])) {
         $sth->execute(array($_POST['read'], $_SESSION['uname']));
     } catch (Exception $e) {
         header('HTTP/1.1 500 Internal Server Error', true, 500);
-        echo json_encode($e->getMessage());
+        echo $e->getMessage();
     }
     exit();
 }
@@ -44,6 +44,14 @@ function fetchMessages($dbh) {
     </head>
     <body>
         <button id="compose" type="button">Compose</button><button id="displayRead" type="button">Hide Read</button>
+        <form method="POST">
+            <fieldset>
+                <legend>Compose</legend>
+                <label for="to">To<input id="name" type="text" name="to" value="" placeholder=""></label>
+                <label for="subject">Subject<input id="subject" type="text" name="subject" value="" placeholder=""></label>
+                <label for="message">Message<textarea id="message" name="message" placeholder=""></textarea></label>
+            </fieldset>
+        </form>
         <section class="accordion">
             <?php
             $msgs = fetchMessages($dbh);
@@ -83,21 +91,39 @@ function fetchMessages($dbh) {
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script>
             $(document).ready(function() {
+                // Hide the form with javascript so the page will still work if
+                // javascript is disabled
+                $('form').hide();
+                var $prevMessage;
+                var hideRead = false;
                 $('article').click(function() {
-                    // Set the message to read and update the database
+                    // If read messages are hidden, wait to hide this one until
+                    // the next message is selected
+                    if ($prevMessage && hideRead)
+                        $prevMessage.hide();
+                    $prevMessage = $(this);
                     $(this).addClass('read');
-                    $.post('url', data).fail(function() {
-                        $(this).removeClass('read');
-                        console.log(data);
-                    });
+                    // Set the message to read and update the database
+                    /*$.post(window.location.pathname, {
+                     'read': $(this).attr('id')
+                     })
+                     .fail(function(jqXHR, textStatus, errorThrown) {
+                     $(this).removeClass('read');
+                     $(this).show();
+                     console.log(textStatus);
+                     console.log(errorThrown);
+                     console.log(jqXHR.responseText);
+                     });*/
                 });
                 $('button').click(function() {
-                    switch($(this).attr('id')) {
+                    switch ($(this).attr('id')) {
                         case 'compose':
+                            $('form').toggle('slow');
                             break;
                         case 'displayRead':
-                            $(this).text($(this).text() === 'Hide Read' ? 'Display Read' : 'Hide Read');
-                            $('.read').toggle();
+                            hideRead = !hideRead;
+                            $(this).text(hideRead ? 'Display Read' : 'Hide Read');
+                            hideRead ? $('.read').hide() : $('.read').show();
                             break;
                     }
                 });

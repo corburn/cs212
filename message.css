@@ -7,6 +7,8 @@ body
     background-color: #e5eaff;
     margin: 10px;
     z-index: 0;
+    max-width: 21cm;
+    margin: auto;
 }
 
 h1
@@ -99,7 +101,7 @@ section.accordion article h2
 section.accordion article:target
 {
     height: 15em;
-    background-color: #fff;
+    background-color: #fff!important;
 }
 
 section.accordion article:target h2
@@ -108,10 +110,15 @@ section.accordion article:target h2
     color: #333;
 }
 
-.read {
-    background-color: #777!important;
+section.accordion article.read {
+    background-color: #777;
 }
 
 button {
     padding: .5em 1em;
+}
+
+input, textarea {
+    display:block;
+    width:100%;
 }
