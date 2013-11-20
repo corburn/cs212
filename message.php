@@ -26,7 +26,17 @@ if (isset($_POST['read'])) {
 
 // A message was sent
 if (isset($_POST['send'], $_POST['to'], $_POST['subject'], $_POST['message'])) {
-    
+    try {
+        $sql = "INSERT INTO `messages`(`to`, `from`, `subject`, `message`) VALUES (:to,'".$_SESSION['uname']."',:subject,:message)";
+        $sth = $dbh->prepare($sql);
+        $sth->bindParam(':to', $_POST['to']);
+        $sth->bindParam(':subject', $_POST['subject']);
+        $sth->bindParam(':message', $_POST['message']);
+        $sth->execute();
+    } catch (Exception $e) {
+        header('HTTP/1.1 500 Internal Server Error', true, 500);
+        echo $e->getMessage();
+    }
 }
 
 /**
@@ -106,8 +116,9 @@ function fetchMessages($dbh) {
             $(document).ready(function() {
                 var $prevMessage;
                 var hideRead = <?php echo isset($_POST['hideRead']) ? $_POST['hideRead'] : 'false'; ?>;
-                if(hideRead) $('.read').hide();
-                
+                if (hideRead)
+                    $('.read').hide();
+
                 // Hide the form with javascript so the page will still work if
                 // javascript is disabled
                 $('form').hide();

@@ -18,6 +18,7 @@ if ($authenticated) {
         $sth->execute(array($_SESSION['uname']));
         $user = $sth->fetch(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
+        header('HTTP/1.1 500 Internal Server Error', true, 500);
         echo $e->getMessage();
     }
 }
@@ -88,6 +89,7 @@ function login($dbh, $uname, $password) {
             return 'There was a problem with the username or password';
         }
     } catch (PDOException $e) {
+        header('HTTP/1.1 500 Internal Server Error', true, 500);
         return 'ERROR: ' . $e->getMessage();
     }
 }
@@ -115,6 +117,7 @@ function register($dbh, array $user) {
         $sth->execute();
         $dbh->commit();
     } catch (PDOException $e) {
+        header('HTTP/1.1 500 Internal Server Error', true, 500);
         return 'ERROR: ' . $e->getMessage();
     }
 }
@@ -132,6 +135,7 @@ function update($dbh, array $user) {
         $sth->execute(array($user['uname']));
         $phash = $sth->fetchColumn();
     } catch (PDOException $e) {
+        header('HTTP/1.1 500 Internal Server Error', true, 500);
         return 'ERROR: ' . $e->getMessage();
     }
     // Verify old password
@@ -149,6 +153,7 @@ function update($dbh, array $user) {
         $sth->bindValue(':uname', $uname);
         $sth->execute();
     } catch (PDOException $e) {
+        header('HTTP/1.1 500 Internal Server Error', true, 500);
         return 'ERROR: ' . $e->getMessage();
     }
     // Update session username in case it was changed

@@ -14,6 +14,7 @@ try {
     // Throw exceptions
     $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
+    header('HTTP/1.1 500 Internal Server Error', true, 500);
     echo 'ERROR: ' . $e->getMessage();
 }
 ?>
