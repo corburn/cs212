@@ -45,7 +45,7 @@ if (isset($_POST['id'], $_POST['action'])) {
 // A message was sent
 if (isset($_POST['send'], $_POST['to'], $_POST['subject'], $_POST['message'])) {
     try {
-        $sql = "INSERT INTO `messages`(`to`, `from`, `subject`, `message`) VALUES (:to,'" . $_SESSION['uname'] . "',:subject,:message)";
+        $sql = "INSERT INTO `messages`(`to`, `from`, `subject`, `message`, `date`) VALUES (:to,'" . $_SESSION['uname'] . "',:subject,:message,NOW())";
         $sth = $dbh->prepare($sql);
         $sth->bindParam(':to', $_POST['to']);
         $sth->bindParam(':subject', $_POST['subject']);
@@ -64,7 +64,7 @@ if (isset($_POST['send'], $_POST['to'], $_POST['subject'], $_POST['message'])) {
  */
 function fetchMessages($dbh) {
     try {
-        $sql = "SELECT * FROM messages WHERE `to`=?";
+        $sql = "SELECT * FROM messages WHERE `to`=? ORDER BY `date` DESC";
         $sth = $dbh->prepare($sql);
         $sth->execute(array($_SESSION['uname']));
         return $sth->fetchAll(PDO::FETCH_ASSOC);
@@ -103,7 +103,7 @@ function fetchMessages($dbh) {
                 echo '<article id="' . $row['id'] . '"';
                 // == cast to boolean
                 echo $row['read'] == True ? ' class="read">' : '>';
-                echo '<h2><a href=#' . $row['id'] . '>' . $row['subject'] . '</a></h2>'
+                echo '<h2><a href=#' . $row['id'] . '>From ' . $row['from'] . ': ' . $row['subject'] . '</a></h2>'
                 . '<p>' . $row['message'] . '</p>'
                 . '<button class="reply" type="button">Reply</button>'
                 . '<button class="delete" type="button">Delete</button>'
@@ -156,9 +156,17 @@ function fetchMessages($dbh) {
                             hideRead ? $('.read').hide() : $('.read').show();
                             $('input[name=hideRead]').val(hideRead);
                             break;
+                            ject
                     }
                     switch ($(this).attr('class')) {
                         case 'reply':
+                            var title = $(this).siblings('h2').text();
+                            var from = title.substring('From '.length, title.indexOf(':'));
+                            var subject = title.substring(title.indexOf(':') + 1, title.length);
+                            $('form').show();
+                            $('input[name=to]').val(from);
+                            $('input[name=subject]').val('Re: ' + subject);
+                            $('textarea').focus();
                             break;
                         case 'delete':
                             $.post(window.location.pathname, {
@@ -166,9 +174,10 @@ function fetchMessages($dbh) {
                                 'action': 'delete'
                             })
                                     .done(function(data) {
-                                        $('#'+data['id']).remove();
+                                        $('#' + data['id']).remove();
                                         // Display no more messages
-                                        if($('section.accordion').children().length < 1) $('section.accordion').html('<span style="color:white">You have no messages</span>');
+                                        if ($('section.accordion').children().length < 1)
+                                            $('section.accordion').html('<span style="color:white">You have no messages</span>');
                                     })
                                     .fail(function(jqXHR, textStatus, errorThrown) {
                                         console.log(textStatus);
