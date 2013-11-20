@@ -65,6 +65,8 @@ section.accordion article
     background-color: #333;
     overflow: hidden;
     border-radius: 3px;
+    /* enable absolute positioning for elements relative to container */
+    position: relative;
 }
 
 section.accordion article h2
@@ -121,4 +123,21 @@ button {
 input, textarea {
     display:block;
     width:100%;
+}
+
+section.accordion article:target button {
+    display: block;
+}
+
+.reply {
+    display: none;
+    position: absolute;
+    bottom: 0;
+}
+
+.delete {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    right: 1em;
 }

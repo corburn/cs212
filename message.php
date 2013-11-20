@@ -10,18 +10,35 @@ if (!isset($_SESSION['uname'])) {
 
 include 'dbh.php';
 
-// An ajax request is sent when the user reads a message
-// Set the message to read ensuring it belongs to them
-if (isset($_POST['id'])) {
-    try {
-        $sql = "UPDATE `messages` SET `read`=TRUE WHERE `id` = ? AND `to` = ?";
-        $sth = $dbh->prepare($sql);
-        $sth->execute(array($_POST['id'], $_SESSION['uname']));
-    } catch (Exception $e) {
-        header('HTTP/1.1 500 Internal Server Error', true, 500);
-        echo $e->getMessage();
+if (isset($_POST['id'], $_POST['action'])) {
+    header('Content-type: application/json');
+    $error = '';
+    switch ($_POST['action']) {
+        // An ajax request is sent when the user reads a message
+        // Set the message to read ensuring it belongs to them
+        case 'read':
+            try {
+                $sql = "UPDATE `messages` SET `read`=TRUE WHERE `id` = ? AND `to` = ?";
+                $sth = $dbh->prepare($sql);
+                $sth->execute(array($_POST['id'], $_SESSION['uname']));
+            } catch (Exception $e) {
+                header('HTTP/1.1 500 Internal Server Error', true, 500);
+                $error = $e->getMessage();
+            }
+            break;
+        // An ajax request is sent when the user clicks a message delete button
+        case 'delete':
+            try {
+                $sql = "DELETE FROM `messages` WHERE `id` = ? AND `to` = ?";
+                $sth = $dbh->prepare($sql);
+                $sth->execute(array($_POST['id'], $_SESSION['uname']));
+            } catch (Exception $e) {
+                header('HTTP/1.1 500 Internal Server Error', true, 500);
+                $error = $e->getMessage();
+            }
+            break;
     }
-    echo $_POST['id'] . ' ' . $_SESSION['uname'];
+    echo json_encode(array('id' => $_POST['id'], 'error' => $error));
     exit();
 }
 
@@ -79,19 +96,24 @@ function fetchMessages($dbh) {
         <section class="accordion">
             <?php
             $msgs = fetchMessages($dbh);
-            if(!$msgs) echo '<span style="color:white">You have no messages</span>';
+            if (!$msgs)
+                echo '<span style="color:white">You have no messages</span>';
+            // Display messages
             foreach ($msgs as $row) {
                 echo '<article id="' . $row['id'] . '"';
                 // == cast to boolean
                 echo $row['read'] == True ? ' class="read">' : '>';
                 echo '<h2><a href=#' . $row['id'] . '>' . $row['subject'] . '</a></h2>'
                 . '<p>' . $row['message'] . '</p>'
+                . '<button class="reply" type="button">Reply</button>'
+                . '<button class="delete" type="button">Delete</button>'
                 . '</article>';
             }
             ?>
         </section>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script>
+            'use strict';
             $(document).ready(function() {
                 var $prevMessage;
                 var hideRead = <?php echo isset($_POST['hideRead']) ? $_POST['hideRead'] : 'false'; ?>;
@@ -111,7 +133,8 @@ function fetchMessages($dbh) {
                     $(this).addClass('read');
                     // Set the message to read and update the database
                     $.post(window.location.pathname, {
-                        'id': $(this).attr('id')
+                        'id': $(this).attr('id'),
+                        'action': 'read'
                     })
                             .fail(function(jqXHR, textStatus, errorThrown) {
                                 $(this).removeClass('read');
@@ -121,7 +144,8 @@ function fetchMessages($dbh) {
                                 console.log(jqXHR.responseText);
                             });
                 });
-                $('button').click(function() {
+                $('button').click(function(e) {
+                    e.stopPropagation();
                     switch ($(this).attr('id')) {
                         case 'compose':
                             $('form').toggle('slow');
@@ -131,6 +155,26 @@ function fetchMessages($dbh) {
                             $(this).text(hideRead ? 'Display Read' : 'Hide Read');
                             hideRead ? $('.read').hide() : $('.read').show();
                             $('input[name=hideRead]').val(hideRead);
+                            break;
+                    }
+                    switch ($(this).attr('class')) {
+                        case 'reply':
+                            break;
+                        case 'delete':
+                            $.post(window.location.pathname, {
+                                'id': $(this).parent().attr('id'),
+                                'action': 'delete'
+                            })
+                                    .done(function(data) {
+                                        $('#'+data['id']).remove();
+                                        // Display no more messages
+                                        if($('section.accordion').children().length < 1) $('section.accordion').html('<span style="color:white">You have no messages</span>');
+                                    })
+                                    .fail(function(jqXHR, textStatus, errorThrown) {
+                                        console.log(textStatus);
+                                        console.log(errorThrown);
+                                        console.log(jqXHR.responseText);
+                                    });
                             break;
                     }
                 });
