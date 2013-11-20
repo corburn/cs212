@@ -12,15 +12,16 @@ include 'dbh.php';
 
 // An ajax request is sent when the user reads a message
 // Set the message to read ensuring it belongs to them
-if (isset($_POST['read'])) {
+if (isset($_POST['id'])) {
     try {
-        $sql = "UPDATE messages SET read=True WHERE 'id' = ? AND 'to' = ?";
+        $sql = "UPDATE `messages` SET `read`=TRUE WHERE `id` = ? AND `to` = ?";
         $sth = $dbh->prepare($sql);
-        $sth->execute(array($_POST['read'], $_SESSION['uname']));
+        $sth->execute(array($_POST['id'], $_SESSION['uname']));
     } catch (Exception $e) {
         header('HTTP/1.1 500 Internal Server Error', true, 500);
         echo $e->getMessage();
     }
+    echo $_POST['id'] . ' ' . $_SESSION['uname'];
     exit();
 }
 
@@ -46,7 +47,7 @@ if (isset($_POST['send'], $_POST['to'], $_POST['subject'], $_POST['message'])) {
  */
 function fetchMessages($dbh) {
     try {
-        $sql = "SELECT * FROM messages WHERE 'to'=?";
+        $sql = "SELECT * FROM messages WHERE `to`=?";
         $sth = $dbh->prepare($sql);
         $sth->execute(array($_SESSION['uname']));
         return $sth->fetchAll(PDO::FETCH_ASSOC);
@@ -79,9 +80,10 @@ function fetchMessages($dbh) {
             <?php
             $msgs = fetchMessages($dbh);
             foreach ($msgs as $row) {
-                echo '<article id="#' . $row['id'] . '"';
-                echo $row['read'] === True ? ' class="read">' : '>';
-                echo '<h2>' . $row['subject'] . '</h2>'
+                echo '<article id="' . $row['id'] . '"';
+                // == cast to boolean
+                echo $row['read'] == True ? ' class="read">' : '>';
+                echo '<h2><a href=#' . $row['id'] . '>' . $row['subject'] . '</a></h2>'
                 . '<p>' . $row['message'] . '</p>'
                 . '</article>';
             }
@@ -132,7 +134,7 @@ function fetchMessages($dbh) {
                     $(this).addClass('read');
                     // Set the message to read and update the database
                     $.post(window.location.pathname, {
-                        'read': $(this).attr('id')
+                        'id': $(this).attr('id')
                     })
                             .fail(function(jqXHR, textStatus, errorThrown) {
                                 $(this).removeClass('read');
