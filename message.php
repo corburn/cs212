@@ -10,6 +10,23 @@ if (!isset($_SESSION['uname'])) {
 
 include 'dbh.php';
 
+if (isset($_GET['uname'])) {
+    header('Content-type: application/json');
+    // An ajax request is sent on keyUp when the user is entering a username in
+    // the compose form. Return a list of usernames starting with those characters.
+    try {
+        $sql = "SELECT `uname` FROM `users` WHERE `uname` LIKE ? LIMIT 5";
+        $sth = $dbh->prepare($sql);
+        $sth->execute(array($_GET['uname'] . '%'));
+        $result = $sth->fetchAll(PDO::FETCH_COLUMN);
+    } catch (Exception $e) {
+        header('HTTP/1.1 500 Internal Server Error', true, 500);
+        $error = $e->getMessage();
+    }
+    echo json_encode(array('error' => $error, 'uname' => $result));
+    exit();
+}
+
 if (isset($_POST['id'], $_POST['action'])) {
     header('Content-type: application/json');
     $error = '';
@@ -79,6 +96,7 @@ function fetchMessages($dbh) {
         <title>Message Reader</title>
         <link rel="stylesheet" type="text/css" href="style.css">
         <link rel="stylesheet" type="text/css" href="message.css">
+        <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
     </head>
     <body>
         <button id="compose" type="button">Compose</button>
@@ -86,9 +104,9 @@ function fetchMessages($dbh) {
         <form method="POST">
             <fieldset>
                 <legend>Compose</legend>
-                <label for="to">To<input name="to" type="text" required></label>
-                <label for="subject">Subject<input name="subject" type="text" required></label>
-                <label for="message">Message<textarea name="message" required></textarea></label>
+                <label for="to">To<input id="to" name="to" type="text" required></label>
+                <label for="subject">Subject<input id="subject" name="subject" type="text" required></label>
+                <label for="message">Message<textarea id="message" name="message" required></textarea></label>
                 <input type="hidden" name="hideRead" value="<?php echo isset($_POST['hideRead']) ? $_POST['hideRead'] : 'false'; ?>">
                 <button type="submit" name="send">Send</button>
             </fieldset>
@@ -112,6 +130,7 @@ function fetchMessages($dbh) {
             ?>
         </section>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
         <script>
             'use strict';
             $(document).ready(function() {
@@ -141,6 +160,7 @@ function fetchMessages($dbh) {
                                 console.log(jqXHR.responseText);
                             });
                 });
+
                 $('button').click(function(e) {
                     e.stopPropagation();
                     switch ($(this).attr('id')) {
@@ -192,6 +212,14 @@ function fetchMessages($dbh) {
                                         console.log(jqXHR.responseText);
                                     });
                             break;
+                    }
+                });
+
+                $('#to').autocomplete({
+                    source: function(request, response) {
+                        $.get(window.location.pathname, {uname: request.term}, function(data) {
+                            response(data['uname']);
+                        });
                     }
                 });
             });
