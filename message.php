@@ -79,6 +79,7 @@ function fetchMessages($dbh) {
         <section class="accordion">
             <?php
             $msgs = fetchMessages($dbh);
+            if(!$msgs) echo '<span style="color:white">You have no messages</span>';
             foreach ($msgs as $row) {
                 echo '<article id="' . $row['id'] . '"';
                 // == cast to boolean
@@ -88,30 +89,6 @@ function fetchMessages($dbh) {
                 . '</article>';
             }
             ?>
-            <article id="acc1">
-                <h2><a href="#acc1">Title One</a></h2>
-                <p>This content appears on page 1.</p>
-            </article>
-
-            <article id="acc2">
-                <h2><a href="#acc2">Title Two</a></h2>
-                <p>This content appears on page 2.</p>
-            </article>
-
-            <article id="acc3" class="read">
-                <h2><a href="#acc3">Title Three</a></h2>
-                <p>This content appears on page 3.</p>
-            </article>
-
-            <article id="acc4">
-                <h2><a href="#acc4">Title Four</a></h2>
-                <p>This content appears on page 4.</p>
-            </article>
-
-            <article id="acc5">
-                <h2><a href="#acc5">Title Five</a></h2>
-                <p>This content appears on page 5.</p>
-            </article>
         </section>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script>
